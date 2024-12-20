@@ -4,14 +4,22 @@ import axios from "axios";
 import Pokemon from "../Pokemon/Pokemon";
 
 function PokemonList() {
-    const POKEDEX_URI = "https://pokeapi.co/api/v2/pokemon";
+    const [pokedexUri, setPokedexUri] = useState("https://pokeapi.co/api/v2/pokemon");
     const [pokemonList, setPokemonList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
+    const [prevUrl, setPrevUrl] = useState('')
+    const [nextUrl, setNextUrl] = useState('')
     async function getData() {
-        const { data } = await axios.get(POKEDEX_URI);
+
+        setIsLoading(true)
+        const { data } = await axios.get(pokedexUri);
         const pokemonResult = data.results; // we get array of pokemon
 
+        console.log(data.previous)
+        console.log(data.next)
+
+        setNextUrl(data.next)
+        setPrevUrl(data.previous)
         const pokemonResultPromise = pokemonResult.map((e) => axios.get(e.url));
         const pokemonData = await axios.all(pokemonResultPromise);
 
@@ -31,7 +39,7 @@ function PokemonList() {
 
     useEffect(() => {
         getData();
-    }, []);
+    }, [pokedexUri]);
 
     return (
         <div className="container mx-auto p-4 ">
@@ -51,11 +59,15 @@ function PokemonList() {
             )}
             <div className="flex justify-center gap-4 mt-6">
                 <button
-                    // disabled={prevUrl == undefined}
+                    onClick={() => setPokedexUri(prevUrl)}
+                    disabled={prevUrl == null}
                     className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
                     Prev
                 </button>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
+                <button
+                    disabled={nextUrl == null}
+                    onClick={() => setPokedexUri(nextUrl)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
                     Next
                 </button>
             </div>
